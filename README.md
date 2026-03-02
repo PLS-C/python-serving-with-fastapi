@@ -28,11 +28,12 @@
     ```bash
     docker build -t py-serving-app .
     ```
+    * *หมายเหตุ: 
 3.  **Run Container (Developer Mode)**: รันโค้ดโดยผูกโฟลเดอร์ในเครื่องเข้ากับ Docker เพื่อให้แก้ไขโค้ดได้สดๆ
     ```powershell
-    docker run -d -p 8080:8080 -v ${PWD}/app:/app py-serving-app uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+    docker run -d --name py-serving-container -p 8080:8080 -v "${PWD}:/workspace" py-serving-app uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
     ```
-    * *หมายเหตุ: คำสั่ง `-v` จะทำการ Mount โฟลเดอร์ `app` และ `--reload` จะรีสตาร์ทเซิร์ฟเวอร์ให้อัตโนมัติเมื่อมีการเซฟไฟล์*
+    * *หมายเหตุ: คำสั่ง `-v` จะทำการ Mount โฟลเดอร์ `app` และ `--reload` จะรีสตาร์ทเซิร์ฟเวอร์ให้อัตโนมัติเมื่อมีการเซฟไฟล์* ${PWD} คือ เส้นทาง (Path) ของโฟลเดอร์ปัจจุบันที่คุณกำลังเปิด Terminal/PowerShell
 4.  **ตรวจสอบสถานะ**: เปิดเบราว์เซอร์ไปที่ `http://localhost:8080/docs` เพื่อทดสอบ API ผ่านหน้าเว็บ Swagger UI
 
 ---
