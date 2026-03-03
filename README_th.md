@@ -1,3 +1,5 @@
+*Read this in other languages: [English](README.md)*
+
 # 🚀 python-serving-with-fastapi
 
 โปรเจกต์นี้สร้างด้วย Python และ FastAPI เพื่อให้บริการคำนวณทางคณิตศาสตร์และประมวลผลสัญญาณ (Signal Processing) แก่โปรแกรมภายนอก เช่น **LabVIEW**, Web Application หรือซอฟต์แวร์ทางวิศวกรรมอื่นๆ
