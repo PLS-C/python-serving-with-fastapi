@@ -8,7 +8,6 @@ import time
 from collections import defaultdict
 
 # ==========================================
-# Simple In-Memory Rate Limiter (ไม่พึ่ง slowapi / .env)
 # จำกัด 5 requests/minute ต่อ IP
 # ==========================================
 RATE_LIMIT = 5
@@ -138,3 +137,4 @@ async def polar_to_rect(request: Request, data: PolarParams):
     x = r_arr * np.cos(phi_arr)
     y = r_arr * np.sin(phi_arr)
     return {"x": x.tolist(), "y": y.tolist()}
+
