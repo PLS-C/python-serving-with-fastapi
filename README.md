@@ -87,14 +87,29 @@ Go to: 🔗 [console.cloud.google.com/artifacts](https://console.cloud.google.co
 3.  Click **Create**.
 
 ### Step 5: Set Environment Variables
+
+Check the project id with commands below:
+
+```batch
+echo $(gcloud config get-value project)
+```
+
+If the project id is empty run this commands below:
+
+```batch
+gcloud config set project <your project id>
+```
+
 Copy and paste the commands below into your **Cloud Shell Terminal** to make the next steps easier (this prevents typos when repeating names):
 
 ```batch
 export PROJECT_ID=$(gcloud config get-value project)
-export REGION=asia-southeast1           # Must match the Region in Artifact Registry
+export REGION=asia-southeast3           # Must match the Region in Artifact Registry
 export REPO_NAME=serving-repo           # The Repository name created in Step 4
 export IMAGE_NAME=serving-api           # The Image name to be used
 ```
+
+
 
 ### Step 6: Build the Image
 In the Cloud Shell Terminal (ensure you are in the folder containing the `Dockerfile` using the `ls` command), run the following command to build the Docker image on the cloud:
@@ -102,34 +117,88 @@ In the Cloud Shell Terminal (ensure you are in the folder containing the `Docker
 gcloud builds submit --tag ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME} .
 ```
 
-### Step 7: Deploy the Image to Cloud Run
-Run this final command in the Cloud Shell Terminal to deploy the built Docker image and serve it as an API on the cloud:
+### Step 7: Deploying the Image to Cloud Run
+Run the following command in the Cloud Shell terminal to deploy the built Docker image and host it as a cloud-based API:
 
 ```batch
 gcloud run deploy serving-api \
-  --image=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME} \
-  --platform=managed \
+  --image=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:latest \
   --region=${REGION} \
   --allow-unauthenticated \
-  --port=8080
+  --port=8080 \
+  --max-instances=2 \
+  --memory=512Mi
 ```
 
-## 🧹 4. Cost Management and Project Cleanup
+### Step 8: Managing Service Access (Open/Close)
+Use these commands in the Cloud Shell terminal to control public access to your service by modifying IAM policy bindings:
 
-To keep your usage within budget (or 100% free under the quota), you should strictly follow these steps when you are done testing.
+To Close the service (Restrict access):
+Run this command to remove the public access permission:
 
-### 4.1 Pausing the Service Temporarily
-This method is suitable if you want to take a break but don't want to delete the project, allowing you to resume later.
+```batch
+   gcloud run services remove-iam-policy-binding serving-api \
+     --region=$REGION \
+     --member="allUsers" \
+     --role="roles/run.invoker"
+```
+To Open the service (Allow public access):
+Run this command to grant access to all users:
 
-* **How it works**: Cloud Run operates on a Pay-per-use basis. If no requests are being processed, the CPU and RAM costs drop to $0 immediately.
-* **Storage Warning**: Even when the code isn't running, your system files are still stored in the registry.
-    * Google Cloud provides a free storage quota of approximately **5GB** (Standard Storage).
-    * If your images are small and do not exceed this limit, you will not be charged.
-* **How to check**: You can view your actual storage usage in the **Artifact Registry** menu.
+```batch
+  gcloud run services add-iam-policy-binding serving-api \
+     --region=$REGION \
+     --member="allUsers" \
+     --role="roles/run.invoker"
+```
 
+
+
+## 4. Cost Management and Resource Monitoring
+
+To ensure your project remains **100% Free** under the Google Cloud Free Tier, follow these monitoring steps.
+
+### 4.1 Automated Cost Control
+* **Scale to Zero**: Cloud Run automatically shuts down instances when there is no traffic.
+* **Pay-per-use**: You only pay for the exact milliseconds your code is processing a request.
+* **Request Quota**: You get **2 million free requests** per month.
+* **Quota Protection**: Locking your service (Step 8) ensures you do not waste this quota.
+
+
+
+### 4.2 Storage Monitoring
+You must manage two different storage areas to stay within the free limits.
+
+#### **A) Artifact Registry (Docker Images)**
+This is where your packaged application is stored.
+* **Free Limit**: **500 MB** per month.
+* **Current Usage Example**: A typical image (like ours) is around **~117 MB**, using about **23%** of the free limit.
+* **Check Command**:
+```bash
+gcloud artifacts docker images list ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}
+```
+
+#### **B) Cloud Shell Editor Storage**
+This stores your source files (e.g., `main.py`, `Dockerfile`) in your personal workspace.
+* **Free Limit**: **5 GB** (Persistent Disk).
+* **Current Usage Example**: Source code files are extremely small, usually at the **KB level** (e.g., 50 KB).
+* **Check Command**:
+```bash
+du -sh .
+```
+
+
+
+### 4.3 Resource Summary Table
+
+| Resource | Monthly Free Limit | Estimated Usage | Action if Near Limit |
+| :--- | :--- | :--- | :--- |
+| **Cloud Run Requests** | 2 Million | ~0 (When Locked) | Use Step 8 to Remove Access. |
+| **Artifact Registry** | 500 MB | **~117 MB** | Delete old Image Digests. |
+| **Cloud Shell Disk** | 5 GB | **~KB level** | Delete unused local files. |
 ---
 
-### 4.2 Full Cleanup (Delete All Resources)
+### 4.4 Full Cleanup (Delete All Resources)
 If you want to completely remove everything to ensure absolutely zero leftover costs, follow these steps in order of importance:
 
 #### 1️⃣ Delete Cloud Run Service
