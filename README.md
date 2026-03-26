@@ -138,7 +138,7 @@ Run this command to remove the public access permission:
 
 ```batch
    gcloud run services remove-iam-policy-binding serving-api \
-     --region=$REGION \
+     --region=asia-southeast3 \
      --member="allUsers" \
      --role="roles/run.invoker"
 ```
@@ -147,7 +147,7 @@ Run this command to grant access to all users:
 
 ```batch
   gcloud run services add-iam-policy-binding serving-api \
-     --region=$REGION \
+     --region=asia-southeast3 \
      --member="allUsers" \
      --role="roles/run.invoker"
 ```
